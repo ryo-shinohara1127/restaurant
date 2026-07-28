@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>レストランURL検索</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <div class="header-inner">
+    <div class="logo">
+      <svg width="30" height="30" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M7 2v7a2 2 0 0 0 2 2v11" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M5 2v7M9 2v7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+        <path d="M17 2c-2 1.5-2 4-2 6s.5 3 2 3 2-1 2-3-0-4.5-2-6Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+        <path d="M17 11v11" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <h1>レストラン検索</h1>
+    <p class="subtitle">キーワードやエリア、現在地からお店を探して、行きたい店に貯めたり相手ごとの共有ボックスにまとめて送れます</p>
+  </div>
+</header>
+
+<main>
+  <form id="search-form">
+    <div class="field">
+      <label for="keyword">キーワード・ジャンル(任意)</label>
+      <input id="keyword" name="keyword" type="text" placeholder="例: 焼肉、カフェ、居酒屋">
+    </div>
+    <div class="field">
+      <label for="area">エリア(任意)</label>
+      <input id="area" name="area" type="text" placeholder="例: 渋谷">
+    </div>
+    <div class="form-actions">
+      <button type="button" id="geo-button">現在地から探す</button>
+      <button type="submit" id="search-button">検索する</button>
+    </div>
+  </form>
+
+  <div id="warnings"></div>
+  <div id="message"></div>
+  <div id="results" class="card-grid"></div>
+
+  <section id="wishlist-section">
+    <h2>行きたい店<span class="hint">(気になったお店をここに貯めます)</span></h2>
+    <div id="wishlist-list" class="card-grid"></div>
+  </section>
+
+  <section id="boxes-section">
+    <h2>共有ボックス<span class="hint">(相手ごとにまとめて共有リンクを作れます)</span></h2>
+    <div id="boxes-list"></div>
+    <button type="button" id="new-box-button">+ 新しいボックスを作る</button>
+  </section>
+</main>
+
+<script src="app.js"></script>
+</body>
+</html>
