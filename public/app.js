@@ -310,10 +310,27 @@ function renderBoxes() {
     shareOutput.appendChild(copyBtn);
     shareBox.appendChild(shareOutput);
 
-    shareBtn.addEventListener("click", () => {
+    shareBtn.addEventListener("click", async () => {
       const encoded = encodeShareData(box.items);
-      shareUrlInput.value = `${location.origin}/share.html#d=${encoded}`;
+      const longUrl = `${location.origin}/share.html#d=${encoded}`;
+      shareUrlInput.value = longUrl;
       shareOutput.hidden = false;
+
+      shareBtn.disabled = true;
+      const originalLabel = shareBtn.textContent;
+      shareBtn.textContent = "短縮中...";
+      try {
+        const res = await fetch(`/api/shorten?url=${encodeURIComponent(longUrl)}`);
+        const data = await res.json();
+        if (res.ok && data.shortUrl) {
+          shareUrlInput.value = data.shortUrl;
+        }
+      } catch {
+        // 短縮に失敗しても、長いURLのままなので問題なく共有できる
+      } finally {
+        shareBtn.disabled = false;
+        shareBtn.textContent = originalLabel;
+      }
     });
 
     copyBtn.addEventListener("click", async () => {
