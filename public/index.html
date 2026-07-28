@@ -35,6 +35,14 @@
       <label for="area">エリア(任意)</label>
       <input id="area" name="area" type="text" placeholder="例: 渋谷">
     </div>
+    <div class="field">
+      <label for="priority">表示の優先順位</label>
+      <select id="priority">
+        <option value="hotpepper,tabelog,google">ホットペッパー→食べログ→Google</option>
+        <option value="tabelog,hotpepper,google">食べログ→ホットペッパー→Google</option>
+        <option value="google,hotpepper,tabelog">Google→ホットペッパー→食べログ</option>
+      </select>
+    </div>
     <div class="form-actions">
       <button type="button" id="geo-button">現在地から探す</button>
       <button type="submit" id="search-button">検索する</button>

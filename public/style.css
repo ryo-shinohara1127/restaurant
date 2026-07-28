@@ -305,6 +305,24 @@ button:disabled {
   color: var(--muted);
 }
 
+.sns-actions {
+  margin-top: 0;
+  padding-top: 0;
+}
+
+.sns-actions a {
+  font-size: 0.78rem;
+  padding: 0.45rem;
+  border-color: transparent;
+  color: var(--muted);
+  background: var(--bg);
+}
+
+.sns-actions a:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
 .result-section {
   margin-top: 2rem;
 }

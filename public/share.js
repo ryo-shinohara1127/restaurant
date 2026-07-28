@@ -54,6 +54,22 @@ function buildReadOnlyCard(candidate) {
   actions.appendChild(openLink);
   body.appendChild(actions);
 
+  const snsRow = document.createElement("div");
+  snsRow.className = "card-actions sns-actions";
+  const igLink = document.createElement("a");
+  igLink.href = `https://www.instagram.com/explore/search/keyword/?q=${encodeURIComponent(candidate.name || "")}`;
+  igLink.target = "_blank";
+  igLink.rel = "noopener noreferrer";
+  igLink.textContent = "Instagramで見る";
+  const ttLink = document.createElement("a");
+  ttLink.href = `https://www.tiktok.com/search?q=${encodeURIComponent(candidate.name || "")}`;
+  ttLink.target = "_blank";
+  ttLink.rel = "noopener noreferrer";
+  ttLink.textContent = "TikTokで見る";
+  snsRow.appendChild(igLink);
+  snsRow.appendChild(ttLink);
+  body.appendChild(snsRow);
+
   card.appendChild(body);
 
   if (!candidate.photo && candidate.url) {

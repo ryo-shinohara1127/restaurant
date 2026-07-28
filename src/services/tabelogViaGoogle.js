@@ -14,7 +14,7 @@ async function searchTabelogViaGoogle({ name, area }) {
 
   const candidates = items.map((item) => ({
     source: "tabelog",
-    sourceLabel: "② 食べログ",
+    sourceLabel: "食べログ",
     name: item.title,
     url: item.link,
     snippet: item.snippet,

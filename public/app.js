@@ -1,6 +1,7 @@
 const form = document.getElementById("search-form");
 const keywordInput = document.getElementById("keyword");
 const areaInput = document.getElementById("area");
+const priorityInput = document.getElementById("priority");
 const geoButton = document.getElementById("geo-button");
 const searchButton = document.getElementById("search-button");
 const warningsEl = document.getElementById("warnings");
@@ -137,9 +138,25 @@ function buildCard(candidate, actionsBuilder) {
   openLink.textContent = "URLを開く";
   actions.appendChild(openLink);
 
+  const snsRow = document.createElement("div");
+  snsRow.className = "card-actions sns-actions";
+  const igLink = document.createElement("a");
+  igLink.href = `https://www.instagram.com/explore/search/keyword/?q=${encodeURIComponent(candidate.name || "")}`;
+  igLink.target = "_blank";
+  igLink.rel = "noopener noreferrer";
+  igLink.textContent = "Instagramで見る";
+  const ttLink = document.createElement("a");
+  ttLink.href = `https://www.tiktok.com/search?q=${encodeURIComponent(candidate.name || "")}`;
+  ttLink.target = "_blank";
+  ttLink.rel = "noopener noreferrer";
+  ttLink.textContent = "TikTokで見る";
+  snsRow.appendChild(igLink);
+  snsRow.appendChild(ttLink);
+
   actionsBuilder(actions, candidate);
 
   body.appendChild(actions);
+  body.appendChild(snsRow);
   card.appendChild(body);
 
   if (!candidate.photo && candidate.url) {
@@ -373,6 +390,7 @@ async function runSearch(params) {
       qs.set("lat", params.lat);
       qs.set("lng", params.lng);
     }
+    if (priorityInput?.value) qs.set("priority", priorityInput.value);
 
     const res = await fetch(`/api/search?${qs.toString()}`);
     const data = await res.json();

@@ -1,8 +1,12 @@
 const express = require("express");
 const { searchPlaces } = require("../services/googlePlaces");
 const { searchHotpepper } = require("../services/hotpepper");
+const { searchTabelogViaGoogle } = require("../services/tabelogViaGoogle");
 
 const router = express.Router();
+
+const VALID_SOURCES = ["hotpepper", "tabelog", "google"];
+const DEFAULT_PRIORITY = ["hotpepper", "tabelog", "google"];
 
 function normalize(s) {
   return (s || "").replace(/\s+/g, "").toLowerCase();
@@ -15,14 +19,59 @@ function namesMatch(a, b) {
   return na.includes(nb) || nb.includes(na);
 }
 
+function parsePriority(raw) {
+  if (!raw) return DEFAULT_PRIORITY;
+  const parsed = raw
+    .split(",")
+    .map((s) => s.trim().toLowerCase())
+    .filter((s) => VALID_SOURCES.includes(s));
+  // 不正な値や欠けがあれば、足りない分をデフォルト順で補う(重複除去)
+  const merged = [...new Set([...parsed, ...DEFAULT_PRIORITY])];
+  return merged;
+}
+
+function googleCandidate(place) {
+  return {
+    source: "google",
+    sourceLabel: "Google",
+    name: place.name,
+    url: place.mapUrl,
+    address: place.address,
+    googleRating: place.rating,
+    photo: null,
+  };
+}
+
+// 各ソースの「この場所に該当する候補を1件探す」チェッカー。google以外はマッチしなければnullを返す。
+const SOURCE_CHECKERS = {
+  async hotpepper(place) {
+    const hp = await searchHotpepper({ name: place.name, area: "" });
+    if (!hp.configured) return null;
+    const match = hp.candidates.find((c) => namesMatch(c.name, place.name));
+    if (!match) return null;
+    return { ...match, googleRating: place.rating, googleMapUrl: place.mapUrl };
+  },
+  async tabelog(place) {
+    const tb = await searchTabelogViaGoogle({ name: place.name, area: "" });
+    if (!tb.configured) return null;
+    const match = tb.candidates.find((c) => namesMatch(c.name, place.name));
+    if (!match) return null;
+    return { ...match, googleRating: place.rating, googleMapUrl: place.mapUrl };
+  },
+  async google(place) {
+    return googleCandidate(place);
+  },
+};
+
 // Googleを起点に候補を検索し(キーワード+エリア、または現在地)、各候補について
-// ホットペッパーに同名店舗があればホットペッパー側の情報(画像・予算・ジャンル)を優先表示する。
+// priorityで指定された順にホットペッパー→食べログ→Googleを確認し、最初に見つかった情報を採用する。
 router.get("/search", async (req, res) => {
   const keyword = (req.query.keyword || "").trim();
   const area = (req.query.area || "").trim();
   const lat = req.query.lat !== undefined ? parseFloat(req.query.lat) : null;
   const lng = req.query.lng !== undefined ? parseFloat(req.query.lng) : null;
   const hasLocation = lat !== null && lng !== null && !Number.isNaN(lat) && !Number.isNaN(lng);
+  const priority = parsePriority(req.query.priority);
 
   if (!keyword && !area && !hasLocation) {
     return res.status(400).json({ error: "キーワード・エリアのいずれか、または現在地情報が必要です" });
@@ -51,26 +100,15 @@ router.get("/search", async (req, res) => {
 
     const candidates = await Promise.all(
       places.map(async (place) => {
-        try {
-          const hp = await searchHotpepper({ name: place.name, area: "" });
-          if (hp.configured) {
-            const match = hp.candidates.find((c) => namesMatch(c.name, place.name));
-            if (match) {
-              return { ...match, googleRating: place.rating, googleMapUrl: place.mapUrl };
-            }
+        for (const source of priority) {
+          try {
+            const result = await SOURCE_CHECKERS[source](place);
+            if (result) return result;
+          } catch {
+            // このソースの取得に失敗しても、次の優先順位のソースを試す
           }
-        } catch {
-          // ホットペッパー突合に失敗しても、Google側の情報だけで候補化を続ける
         }
-        return {
-          source: "google",
-          sourceLabel: "Google",
-          name: place.name,
-          url: place.mapUrl,
-          address: place.address,
-          googleRating: place.rating,
-          photo: null,
-        };
+        return googleCandidate(place);
       })
     );
 
