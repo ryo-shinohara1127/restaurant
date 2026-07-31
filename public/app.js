@@ -1,7 +1,16 @@
 const form = document.getElementById("search-form");
 const keywordInput = document.getElementById("keyword");
 const areaInput = document.getElementById("area");
-const priorityInput = document.getElementById("priority");
+const priorityRowsEl = document.getElementById("priority-rows");
+
+function getPriorityParam() {
+  const selects = [...priorityRowsEl.querySelectorAll("select[data-source]")];
+  const ranked = selects
+    .map((sel) => ({ source: sel.dataset.source, rank: parseInt(sel.value, 10) }))
+    .filter((s) => s.rank > 0)
+    .sort((a, b) => a.rank - b.rank);
+  return ranked.map((s) => s.source).join(",");
+}
 const geoButton = document.getElementById("geo-button");
 const searchButton = document.getElementById("search-button");
 const warningsEl = document.getElementById("warnings");
@@ -376,6 +385,12 @@ newBoxButton.addEventListener("click", () => {
 
 // --- 検索 ---
 async function runSearch(params) {
+  const priorityParam = getPriorityParam();
+  if (!priorityParam) {
+    messageEl.textContent = "表示するソースを少なくとも1つは選んでください";
+    return;
+  }
+
   searchButton.disabled = true;
   geoButton.disabled = true;
   warningsEl.textContent = "";
@@ -390,7 +405,7 @@ async function runSearch(params) {
       qs.set("lat", params.lat);
       qs.set("lng", params.lng);
     }
-    if (priorityInput?.value) qs.set("priority", priorityInput.value);
+    qs.set("priority", priorityParam);
 
     const res = await fetch(`/api/search?${qs.toString()}`);
     const data = await res.json();

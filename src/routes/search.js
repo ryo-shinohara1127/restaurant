@@ -19,15 +19,17 @@ function namesMatch(a, b) {
   return na.includes(nb) || nb.includes(na);
 }
 
+// クライアント側でソースごとに「使わない/1番目/2番目/3番目」を選べるため、
+// ここで受け取るpriorityは全ソースを含むとは限らない(意図的な絞り込みとして扱う)。
 function parsePriority(raw) {
   if (!raw) return DEFAULT_PRIORITY;
-  const parsed = raw
-    .split(",")
-    .map((s) => s.trim().toLowerCase())
-    .filter((s) => VALID_SOURCES.includes(s));
-  // 不正な値や欠けがあれば、足りない分をデフォルト順で補う(重複除去)
-  const merged = [...new Set([...parsed, ...DEFAULT_PRIORITY])];
-  return merged;
+  const parsed = [...new Set(
+    raw
+      .split(",")
+      .map((s) => s.trim().toLowerCase())
+      .filter((s) => VALID_SOURCES.includes(s))
+  )];
+  return parsed.length ? parsed : DEFAULT_PRIORITY;
 }
 
 function googleCandidate(place) {
@@ -98,7 +100,7 @@ router.get("/search", async (req, res) => {
       });
     }
 
-    const candidates = await Promise.all(
+    const resolved = await Promise.all(
       places.map(async (place) => {
         for (const source of priority) {
           try {
@@ -108,9 +110,19 @@ router.get("/search", async (req, res) => {
             // このソースの取得に失敗しても、次の優先順位のソースを試す
           }
         }
-        return googleCandidate(place);
+        // 選択されたどのソースにも該当しなかった場所は結果から除外する
+        return null;
       })
     );
+    const candidates = resolved.filter(Boolean);
+
+    if (!candidates.length) {
+      return res.json({
+        candidates: [],
+        warnings,
+        message: "選択したソースに該当する候補が見つかりませんでした。ソースの選択やキーワードを変えて再検索してください。",
+      });
+    }
 
     return res.json({ candidates, warnings });
   } catch (err) {
