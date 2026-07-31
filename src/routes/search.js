@@ -108,6 +108,7 @@ router.get("/search", async (req, res) => {
       })
     );
     const candidates = resolved.filter(Boolean);
+    candidates.sort((a, b) => (b.googleRating ?? -1) - (a.googleRating ?? -1));
 
     if (!candidates.length) {
       return res.json({
