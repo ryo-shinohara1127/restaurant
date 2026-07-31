@@ -86,6 +86,8 @@ router.get("/search", async (req, res) => {
 
   // 食べログが1番目に選ばれていて、かつテキストのクエリがある場合は、
   // Google起点のクロスマッチではなく食べログ自身の評価順リストをそのまま候補として使う。
+  // 取得に失敗した場合(食べログ側のBot検知など)はエラーで止めず、
+  // 通常のGoogle起点フローにフォールバックする。
   if (priority[0] === "tabelog" && textQuery) {
     try {
       const candidates = await searchTabelogRanking({ query: textQuery });
@@ -99,7 +101,7 @@ router.get("/search", async (req, res) => {
       return res.json({ candidates, warnings });
     } catch (err) {
       console.error(err);
-      return res.status(502).json({ error: "食べログの検索中にエラーが発生しました。しばらくしてから再度お試しください。" });
+      warnings.push("食べログの評価順リストを取得できなかったため、他のソースで検索しました");
     }
   }
 
