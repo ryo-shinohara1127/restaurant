@@ -1,7 +1,7 @@
 const express = require("express");
 const { searchPlaces } = require("../services/googlePlaces");
 const { searchHotpepper } = require("../services/hotpepper");
-const { searchTabelogViaGoogle } = require("../services/tabelogViaGoogle");
+const { searchTabelogRanking } = require("../services/tabelogScraper");
 
 const router = express.Router();
 
@@ -54,9 +54,8 @@ const SOURCE_CHECKERS = {
     return { ...match, googleRating: place.rating, googleMapUrl: place.mapUrl };
   },
   async tabelog(place) {
-    const tb = await searchTabelogViaGoogle({ name: place.name, area: "" });
-    if (!tb.configured) return null;
-    const match = tb.candidates.find((c) => namesMatch(c.name, place.name));
+    const candidates = await searchTabelogRanking({ query: place.name, area: "" });
+    const match = candidates.find((c) => namesMatch(c.name, place.name));
     if (!match) return null;
     return { ...match, googleRating: place.rating, googleMapUrl: place.mapUrl };
   },
@@ -66,7 +65,8 @@ const SOURCE_CHECKERS = {
 };
 
 // Googleを起点に候補を検索し(キーワード+エリア、または現在地)、各候補について
-// priorityで指定された順にホットペッパー→食べログ→Googleを確認し、最初に見つかった情報を採用する。
+// priorityで指定された順にホットペッパー→食べログ→Googleを確認し、最初に見つかった情報を採用する
+// (ただし食べログが1番目の場合は下記の通り食べログ自身の評価順リストを直接使う)。
 router.get("/search", async (req, res) => {
   const genre = (req.query.genre || "").trim();
   const keyword = (req.query.keyword || "").trim();
@@ -81,7 +81,27 @@ router.get("/search", async (req, res) => {
   }
 
   const query = [genre, keyword, area].filter(Boolean).join(" ") || "レストラン";
+  const textQuery = [genre, keyword, area].filter(Boolean).join(" ");
   const warnings = [];
+
+  // 食べログが1番目に選ばれていて、かつテキストのクエリがある場合は、
+  // Google起点のクロスマッチではなく食べログ自身の評価順リストをそのまま候補として使う。
+  if (priority[0] === "tabelog" && textQuery) {
+    try {
+      const candidates = await searchTabelogRanking({ query: textQuery });
+      if (!candidates.length) {
+        return res.json({
+          candidates: [],
+          warnings,
+          message: "候補が見つかりませんでした。キーワードやエリアを変えて再検索してください。",
+        });
+      }
+      return res.json({ candidates, warnings });
+    } catch (err) {
+      console.error(err);
+      return res.status(502).json({ error: "食べログの検索中にエラーが発生しました。しばらくしてから再度お試しください。" });
+    }
+  }
 
   try {
     const { configured, places } = await searchPlaces(

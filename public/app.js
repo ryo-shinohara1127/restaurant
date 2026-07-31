@@ -12,6 +12,30 @@ function getPriorityParam() {
     .sort((a, b) => a.rank - b.rank);
   return ranked.map((s) => s.source).join(",");
 }
+
+// 同じ順位(1〜3番目)が複数ソースに重複しないよう、選び直された順位を
+// それまで持っていた別のソースとその場で入れ替える。
+const prioritySelects = [...priorityRowsEl.querySelectorAll("select[data-source]")];
+const previousPriorityValues = new Map(prioritySelects.map((sel) => [sel, sel.value]));
+
+prioritySelects.forEach((changedSelect) => {
+  changedSelect.addEventListener("change", () => {
+    const newValue = changedSelect.value;
+    const oldValue = previousPriorityValues.get(changedSelect);
+
+    if (newValue !== "0") {
+      const conflicting = prioritySelects.find(
+        (sel) => sel !== changedSelect && sel.value === newValue
+      );
+      if (conflicting) {
+        conflicting.value = oldValue;
+        previousPriorityValues.set(conflicting, oldValue);
+      }
+    }
+
+    previousPriorityValues.set(changedSelect, newValue);
+  });
+});
 const geoButton = document.getElementById("geo-button");
 const searchButton = document.getElementById("search-button");
 const warningsEl = document.getElementById("warnings");
@@ -133,6 +157,7 @@ function buildCard(candidate, actionsBuilder) {
 
   const metaParts = [candidate.address, candidate.budget, candidate.genre, candidate.snippet].filter(Boolean);
   if (candidate.googleRating != null) metaParts.push(`★${candidate.googleRating}`);
+  if (candidate.tabelogRating != null) metaParts.push(`食べログ${candidate.tabelogRating}`);
   const meta = document.createElement("div");
   meta.className = "card-meta";
   meta.textContent = metaParts.join(" / ");
@@ -162,6 +187,14 @@ function buildCard(candidate, actionsBuilder) {
   ttLink.textContent = "TikTokで見る";
   snsRow.appendChild(igLink);
   snsRow.appendChild(ttLink);
+  if (candidate.source !== "tabelog") {
+    const tabelogLink = document.createElement("a");
+    tabelogLink.href = `https://tabelog.com/rstLst/?sw=${encodeURIComponent(candidate.name || "")}`;
+    tabelogLink.target = "_blank";
+    tabelogLink.rel = "noopener noreferrer";
+    tabelogLink.textContent = "食べログで見る";
+    snsRow.appendChild(tabelogLink);
+  }
 
   actionsBuilder(actions, candidate);
 
