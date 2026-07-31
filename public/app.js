@@ -2,38 +2,20 @@ const form = document.getElementById("search-form");
 const genreInput = document.getElementById("genre");
 const keywordInput = document.getElementById("keyword");
 const areaInput = document.getElementById("area");
-const priorityRowsEl = document.getElementById("priority-rows");
+const priorityToggleEl = document.getElementById("priority-toggle");
+const priorityToggleButtons = [...priorityToggleEl.querySelectorAll(".priority-toggle-btn")];
 
 function getPriorityParam() {
-  const selects = [...priorityRowsEl.querySelectorAll("select[data-source]")];
-  const ranked = selects
-    .map((sel) => ({ source: sel.dataset.source, rank: parseInt(sel.value, 10) }))
-    .filter((s) => s.rank > 0)
-    .sort((a, b) => a.rank - b.rank);
-  return ranked.map((s) => s.source).join(",");
+  const active = priorityToggleEl.querySelector(".priority-toggle-btn.is-active");
+  const first = active?.dataset.priority || "hotpepper";
+  const second = first === "hotpepper" ? "google" : "hotpepper";
+  return `${first},${second}`;
 }
 
-// 同じ順位(1〜3番目)が複数ソースに重複しないよう、選び直された順位を
-// それまで持っていた別のソースとその場で入れ替える。
-const prioritySelects = [...priorityRowsEl.querySelectorAll("select[data-source]")];
-const previousPriorityValues = new Map(prioritySelects.map((sel) => [sel, sel.value]));
-
-prioritySelects.forEach((changedSelect) => {
-  changedSelect.addEventListener("change", () => {
-    const newValue = changedSelect.value;
-    const oldValue = previousPriorityValues.get(changedSelect);
-
-    if (newValue !== "0") {
-      const conflicting = prioritySelects.find(
-        (sel) => sel !== changedSelect && sel.value === newValue
-      );
-      if (conflicting) {
-        conflicting.value = oldValue;
-        previousPriorityValues.set(conflicting, oldValue);
-      }
-    }
-
-    previousPriorityValues.set(changedSelect, newValue);
+priorityToggleButtons.forEach((btn) => {
+  btn.addEventListener("click", () => {
+    priorityToggleButtons.forEach((b) => b.classList.toggle("is-active", b === btn));
+    priorityToggleEl.classList.toggle("is-google", btn.dataset.priority === "google");
   });
 });
 const geoButton = document.getElementById("geo-button");

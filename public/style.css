@@ -126,29 +126,51 @@ main {
   flex-basis: 100%;
 }
 
-.priority-rows {
+.priority-toggle {
+  position: relative;
   display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.priority-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.6rem;
+  gap: 4px;
   background: var(--bg);
   border: 1.5px solid var(--border);
-  border-radius: var(--radius-sm);
-  padding: 0.5rem 0.7rem;
-}
-
-.priority-row span {
-  font-size: 0.9rem;
-}
-
-.priority-row select {
   border-radius: 999px;
+  padding: 4px;
+}
+
+.priority-toggle-thumb {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: calc(50% - 4px);
+  height: calc(100% - 8px);
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  box-shadow: var(--shadow-lift);
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.priority-toggle.is-google .priority-toggle-thumb {
+  transform: translateX(100%);
+}
+
+.priority-toggle-btn {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  border: none;
+  background: transparent;
+  border-radius: 999px;
+  padding: 0.7rem 1rem;
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--muted);
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.priority-toggle-btn.is-active {
+  color: var(--accent-fg);
+  font-weight: 700;
 }
 
 .field label {

@@ -40,24 +40,11 @@
       <input id="area" name="area" type="text" placeholder="例: 渋谷">
     </div>
     <div class="field field-wide">
-      <label>表示するサイトと優先順位</label>
-      <div class="priority-rows" id="priority-rows">
-        <div class="priority-row">
-          <span>ホットペッパー</span>
-          <select data-source="hotpepper">
-            <option value="0">使わない</option>
-            <option value="1" selected>1番目</option>
-            <option value="2">2番目</option>
-          </select>
-        </div>
-        <div class="priority-row">
-          <span>Google</span>
-          <select data-source="google">
-            <option value="0">使わない</option>
-            <option value="1">1番目</option>
-            <option value="2" selected>2番目</option>
-          </select>
-        </div>
+      <label>優先するサイト</label>
+      <div class="priority-toggle" id="priority-toggle">
+        <span class="priority-toggle-thumb" aria-hidden="true"></span>
+        <button type="button" class="priority-toggle-btn is-active" data-priority="hotpepper">ホットペッパー</button>
+        <button type="button" class="priority-toggle-btn" data-priority="google">Google</button>
       </div>
     </div>
     <div class="form-actions">
