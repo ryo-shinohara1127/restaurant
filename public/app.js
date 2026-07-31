@@ -1,4 +1,5 @@
 const form = document.getElementById("search-form");
+const genreInput = document.getElementById("genre");
 const keywordInput = document.getElementById("keyword");
 const areaInput = document.getElementById("area");
 const priorityRowsEl = document.getElementById("priority-rows");
@@ -399,6 +400,7 @@ async function runSearch(params) {
 
   try {
     const qs = new URLSearchParams();
+    if (params.genre) qs.set("genre", params.genre);
     if (params.keyword) qs.set("keyword", params.keyword);
     if (params.area) qs.set("area", params.area);
     if (params.lat != null) {
@@ -432,13 +434,14 @@ async function runSearch(params) {
 
 form.addEventListener("submit", (e) => {
   e.preventDefault();
+  const genre = genreInput.value.trim();
   const keyword = keywordInput.value.trim();
   const area = areaInput.value.trim();
-  if (!keyword && !area) {
-    messageEl.textContent = "キーワードかエリアのどちらかを入力してください";
+  if (!genre && !keyword && !area) {
+    messageEl.textContent = "ジャンル・キーワード・エリアのいずれかを入力してください";
     return;
   }
-  runSearch({ keyword, area });
+  runSearch({ genre, keyword, area });
 });
 
 geoButton.addEventListener("click", () => {
@@ -451,7 +454,12 @@ geoButton.addEventListener("click", () => {
   navigator.geolocation.getCurrentPosition(
     (pos) => {
       geoButton.textContent = "現在地から探す";
-      runSearch({ keyword: keywordInput.value.trim(), lat: pos.coords.latitude, lng: pos.coords.longitude });
+      runSearch({
+        genre: genreInput.value.trim(),
+        keyword: keywordInput.value.trim(),
+        lat: pos.coords.latitude,
+        lng: pos.coords.longitude,
+      });
     },
     (err) => {
       geoButton.textContent = "現在地から探す";

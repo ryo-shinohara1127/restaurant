@@ -68,6 +68,7 @@ const SOURCE_CHECKERS = {
 // Googleを起点に候補を検索し(キーワード+エリア、または現在地)、各候補について
 // priorityで指定された順にホットペッパー→食べログ→Googleを確認し、最初に見つかった情報を採用する。
 router.get("/search", async (req, res) => {
+  const genre = (req.query.genre || "").trim();
   const keyword = (req.query.keyword || "").trim();
   const area = (req.query.area || "").trim();
   const lat = req.query.lat !== undefined ? parseFloat(req.query.lat) : null;
@@ -75,11 +76,11 @@ router.get("/search", async (req, res) => {
   const hasLocation = lat !== null && lng !== null && !Number.isNaN(lat) && !Number.isNaN(lng);
   const priority = parsePriority(req.query.priority);
 
-  if (!keyword && !area && !hasLocation) {
-    return res.status(400).json({ error: "キーワード・エリアのいずれか、または現在地情報が必要です" });
+  if (!genre && !keyword && !area && !hasLocation) {
+    return res.status(400).json({ error: "ジャンル・キーワード・エリアのいずれか、または現在地情報が必要です" });
   }
 
-  const query = [keyword, area].filter(Boolean).join(" ") || "レストラン";
+  const query = [genre, keyword, area].filter(Boolean).join(" ") || "レストラン";
   const warnings = [];
 
   try {
