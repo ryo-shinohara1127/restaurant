@@ -128,7 +128,7 @@ function removeFromBox(boxId, url) {
 
 // --- カード描画 ---
 function badgeClass(source) {
-  return source === "hotpepper" ? "hotpepper" : source === "tabelog" ? "tabelog" : "google";
+  return source === "hotpepper" ? "hotpepper" : "google";
 }
 
 function buildCard(candidate, actionsBuilder) {
@@ -157,7 +157,6 @@ function buildCard(candidate, actionsBuilder) {
 
   const metaParts = [candidate.address, candidate.budget, candidate.genre, candidate.snippet].filter(Boolean);
   if (candidate.googleRating != null) metaParts.push(`★${candidate.googleRating}`);
-  if (candidate.tabelogRating != null) metaParts.push(`食べログ${candidate.tabelogRating}`);
   const meta = document.createElement("div");
   meta.className = "card-meta";
   meta.textContent = metaParts.join(" / ");
@@ -185,16 +184,14 @@ function buildCard(candidate, actionsBuilder) {
   ttLink.target = "_blank";
   ttLink.rel = "noopener noreferrer";
   ttLink.textContent = "TikTokで見る";
+  const tabelogLink = document.createElement("a");
+  tabelogLink.href = `https://tabelog.com/rstLst/?sw=${encodeURIComponent(candidate.name || "")}`;
+  tabelogLink.target = "_blank";
+  tabelogLink.rel = "noopener noreferrer";
+  tabelogLink.textContent = "食べログで見る";
   snsRow.appendChild(igLink);
   snsRow.appendChild(ttLink);
-  if (candidate.source !== "tabelog") {
-    const tabelogLink = document.createElement("a");
-    tabelogLink.href = `https://tabelog.com/rstLst/?sw=${encodeURIComponent(candidate.name || "")}`;
-    tabelogLink.target = "_blank";
-    tabelogLink.rel = "noopener noreferrer";
-    tabelogLink.textContent = "食べログで見る";
-    snsRow.appendChild(tabelogLink);
-  }
+  snsRow.appendChild(tabelogLink);
 
   actionsBuilder(actions, candidate);
 
